@@ -1,0 +1,304 @@
+#!/bin/bash
+#
+# $Id: sqlite_rocket,v 1.4 2014/07/08 21:24:09 condor Exp condor $ 
+#
+# File    : skyrocket.sh 
+# Purpose : Slightly less primative than using your toes cli sqlite3 tool. 
+#         : contents of a database.
+# Date    : 05/17/14
+# Author  : condor 
+#
+# GUFI: 527c17e35fbb04.54787666:527c17e47ee505.32926663:110713:174451EST
+#       5283a5ec981d31.63309163:5283a5edbea555.97391173:111213:111644EST
+#       528bdaf286bbf7.29235535:528bdaf4284cc7.39687120:111913:164106EST
+# 	53a625c4622263.37230699:53a6260ccd8d58.24488919:20140622:024100UTC
+
+
+VERBOSE=0
+
+(($VERBOSE)) && {
+	echo -e "\\033[34mFile:\\033[0m     $0"
+	echo -e "\\033[34mLocation:\\033[0m $PWD"
+} > /dev/stdout
+
+
+
+
+init_aliases () {
+
+# bash_aliases is the focus this sourcing because, for now, cfs_select () 
+# is located in this file.  cfs_select () should reside in bash_tui.
+
+	ALIASLOCATIONS[0]=$PWD/bash_aliases	
+	# ALIASLOCATIONS[1]=/home/continental/bin/bash_aliases
+	# ALIASLOCATIONS[2]=/run/media/condor/567fba76-1c0a-49d5-9373-710fc2a5b85c/home/continental/bin/bash_aliases
+
+	for alias in ${ALIASLOCATIONS[@]}; do 
+
+		(($VERBOSE)) && echo "DEBUG: alias location: $alias" > /dev/stdout
+		if [ -f $alias ]; then
+
+			(($VERBOSE)) && echo "DEBUG: sourcing $alias"
+			. $alias
+			break
+		fi
+	done
+}
+
+
+
+
+
+init_db_location () {
+
+
+
+	DBLOCATIONS[0]=$PWD/superNavigator.db
+	ABSOLUTE_DATABASE_PATH=$PWD/superNavigator.db
+
+if [ 0 -eq 1 ];then 
+	DBLOCATIONS[1]=/home/condor/.cfs/superNavigator.db
+	DBLOCATIONS[2]=/run/media/condor/567fba76-1c0a-49d5-9373-710fc2a5b85c/home/condor/.cfs/superNavigator.db
+
+	for db in ${DBLOCATIONS[@]}; do 
+
+		(($VERBOSE)) && echo "DEBUG: db location: $db" > /dev/stdout
+
+		if [ -f $db ]; then
+			ABSOLUTE_DATABASE_PATH=$db
+			break
+		fi
+	done
+fi
+
+}
+
+db_location () {
+
+	echo $ABSOLUTE_DATABASE_PATH
+}
+
+long_help () {
+	:
+}
+
+
+
+function cfs_select () {
+BUGGY=1
+
+CFS_SELECTION=""
+LINELENGTH=80
+LEFTMARGINLENGTH=8
+
+LOCALDIR_REPO='.RCS'
+FILESYSTEM_REPO='/var/cache/cfs/rcs'
+
+for (( x = 0 ; $x < $LINELENGTH; x++ )) ; do
+	BLANKLINE=${BLANKLINE}"\\040"
+done
+
+for (( x = 0 ; $x < $LEFTMARGINLENGTH; x++ )) ; do
+	LEFTMARGIN=${LEFTMARGIN}"\\040"
+done
+
+
+	echo -e "\\033[31mDEBUG\\033[0m\\040/home/continental/bin/bash_aliases cfs_select() $1 $@"
+
+	IFS=$'\t\n'
+	
+	SELECTIONS=( 'Exit' ${@} )
+	LAST_ASSIGNED_INDEX=${#SELECTIONS[@]}
+	
+
+	SELECTION_PROCESS='INCOMPLETE'
+
+
+	while [[ $SELECTION_PROCESS == 'INCOMPLETE' ]]; do 
+		index=0
+	
+			echo -e "${LEFTMARGIN}\\033[1;44m\\040${BLANKLINE}\\033[1;0m"
+		for directory in ${SELECTIONS[@]}; do
+
+			echo -e "${LEFTMARGIN}\\033[1;44m\\040${BLANKLINE}\\033[1;0m\\033[1A"
+			echo -e "${LEFTMARGIN}\\033[1;44;36m $index  \\033[1;37m$directory\\033[1;0m"
+
+			index=$(($index+1))
+		done
+
+			echo -e "${LEFTMARGIN}\\033[1;44m\\040${BLANKLINE}\\033[1;0m"
+			echo -en "${LEFTMARGIN}"
+
+	
+		read -p"Make a Selection: " selection
+
+		if  [ -z "$selection" ]; then
+			echo "selection not set"
+			selection=0
+	
+		else
+			echo "selection: $selection"
+			echo ${#selection}
+			echo "selection set"
+		fi
+		if [[ $selection -ge $BASE ]] && [[ $selection -le $index ]]; then
+
+			echo "DEBUG: selection within limits"
+
+			SELECTION_PROCESS='COMPLETE'
+			CFS_SELECTION=${SELECTIONS[$selection]}
+		fi
+
+		echo "*** $selection"
+		echo "*** $LAST_ASSIGNED_INDEX"
+
+		if [ $selection -eq $LAST_ASSIGNED_INDEX ]; then
+			SELECTION_PROECESS='COMPLETE'
+		fi
+	done
+	IFS=$' \t\n'
+}
+
+
+backup_database () {
+	cp   $ABSOLUTE_DATABASE_PATH  $ABSOLUTE_DATABASE_PATH-backup
+
+}
+
+
+delete_database () {
+	rm   $ABSOLUTE_DATABASE_PATH
+}
+
+launch_rocket_menu () {
+
+
+	db_location
+
+	MENU=( "Create database" "Backup database" "Delete database" "Sqlite3 Console"  "Edit Table Definition File" )
+
+	while [ "$CFS_SELECTION" != "Exit" ]; do
+
+		cfs_select "${MENU[@]}"
+
+		# echo $CFS_SELECTION
+		# echo "${MENU[0]}" 		
+		# echo "${MENU[1]}" 		
+		# echo "${MENU[2]}" 
+		case  "$CFS_SELECTION" in 
+
+			"${MENU[0]}" )
+				echo "${MENU[0]}"
+				CFS_SELECTION="Exit"
+			
+				cat create-database.sql | sqlite3 $ABSOLUTE_DATABASE_PATH
+				cat create-tables.sql | sqlite3 $ABSOLUTE_DATABASE_PATH
+
+
+			;; 
+
+			"${MENU[1]}" )
+
+				backup_database 
+				echo "${MENU[1]}"
+				CFS_SELECTION="Exit"
+			;;
+
+
+			"${MENU[2]}" )
+
+				delete_database 
+				echo "${MENU[2]}"
+				CFS_SELECTION="Exit"
+			;;
+
+			"${MENU[3]}" )
+
+				if [ -f $ABSOLUTE_DATABASE_PATH ]; then
+					sqlite3 $ABSOLUTE_DATABASE_PATH
+
+				else
+					echo "No databasee file present"
+				fi
+
+
+				CFS_SELECTION="Exit"
+			;;
+
+			"${MENU[4]}" )
+
+				if [ -f create-tables.sql ]; then
+					vim create-tables.sql 
+				else
+					echo "No table definition file present"
+				fi
+				CFS_SELECTION="Exit"
+			;;
+		esac
+	done
+} # launch_rocket_menu
+
+
+
+launch_rocket_cli_parser () {
+
+	# echo "DEBUG: launch_rocket_cli_parser ()"
+
+	if [ $# -eq 1 ]; then
+
+		if [ $1 == "--help" ] || [ $1 == "-h" ]; then
+			long_help
+
+
+		elif [ $1 == "--populate" ]; then 
+
+			echo "SELECT directory FROM Directory;" | sqlite3  	$ABSOLUTE_DATABASE_PATH
+
+		elif [ $1 == "--delete" ]; then
+
+				echo "DELETE FROM directory;" | sqlite3 	$ABSOLUTE_DATABASE_PATH
+
+		fi
+
+		
+	elif [ $# -eq 2 ]; then
+
+		if [ $1 == "--push" ]; then
+
+			echo "INSERT INTO directory VALUES (\"$2\", \"\", NULL );" | sqlite3 	$ABSOLUTE_DATABASE_PATH
+
+		fi
+	fi
+
+
+}
+
+# init_aliases
+init_db_location
+
+if [ $# -eq 0 ]; then
+	launch_rocket_menu
+else
+	launch_rocket_cli_parser $@
+fi
+
+# $Log: sqlite_rocket,v $
+# Revision 1.4  2014/07/08 21:24:09  condor
+# I've added a help function.
+#
+# Revision 1.3  2014/07/08 17:21:32  condor
+# Added an array to keep track of where to look for ourself while on different devices.
+#
+# Revision 1.2  2014/07/01 14:15:17  condor
+# *** empty log message ***
+#
+# Revision 1.1  2014/06/22 00:46:57  condor
+# Initial revision
+#
+# Revision 1.1  2014/06/22 00:43:02  condor
+# Initial revision
+#
+# Revision 1.1  2014/05/27 19:25:12  root
+# Initial revision
+#
+# 
