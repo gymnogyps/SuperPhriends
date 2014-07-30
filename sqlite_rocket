@@ -13,7 +13,7 @@
 #       528bdaf286bbf7.29235535:528bdaf4284cc7.39687120:111913:164106EST
 # 	53a625c4622263.37230699:53a6260ccd8d58.24488919:20140622:024100UTC
 
-
+BUGGY=0
 VERBOSE=0
 
 (($VERBOSE)) && {
@@ -276,6 +276,8 @@ launch_rocket_cli_parser () {
 # init_aliases
 init_db_location
 
+
+(($BUGGY)) && echo "DEBUG File: sqlite_rocket" > /dev/stderr
 if [ $# -eq 0 ]; then
 	launch_rocket_menu
 else

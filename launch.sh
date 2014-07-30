@@ -1,3 +1,3 @@
 #!/bin/bash
 
-bash --rcfile bashrc
+bash --rcfile $PWD/bashrc

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Function: superNavigator () 
-#  Purpose: The function provides fast directory structure transversal with persistance provided by Sqlite3.
+# Feature:  Navigator 
+#  Purpose: Provides fast directory structure transversal with persistance provided by Sqlite3.
 #           This is a drop in replacement for bash directory stack.  
 #     Date:  6/7/14
 #   Author:  Joseph Pesco
@@ -13,11 +13,16 @@
 # Sunday, 20140622 9:55 UTC
 #         Goal: Use sqlite_rocket to populate the STACK array.   
 
-BUGGY=0
-
+BUGGY=1
 VERBOSE=1
 
+# Function: init_rocket () 
+# Purpose:  Find the sqlite database manager.
+# Author:   condor
+# Date:     07/29/14
 init_rocket () {
+
+	fret=0
 
 	ROCKETLOCATIONS[0]=$PWD/sqlite_rocket
 	# ROCKETLOCATIONS[1]=/home/condor/devel/bash/read/sqlite_rocket 
@@ -26,33 +31,42 @@ init_rocket () {
 	INDEX=0
 	for rocket in ${ROCKETLOCATIONS[@]}; do 
 
-		echo "DEBUG: $INDEX: rocket location: $rocket" > /dev/stdout
-
+		(($BUGGY)) && echo "DEBUG: init_rocket() \$INDEX: $INDEX: rocket location: $rocket" > /dev/stdout
 		if [ -f $rocket ]; then
+
 			ROCKET=$rocket
 			break
 		fi
 		let INDEX++
 	done
 
-
 	if [ -f $ROCKET ]; then
-		echo "rocket has been assigned to: $ROCKET" > /dev/stdout
 
+		(($BUGGY)) && echo "DEBUG: init_rocket() rocket has been assigned to: $ROCKET" > /dev/stdout
+		fret=1
+		# Handshake the sqlite database manager, pole the results and set the state of the 
+		# function return value after configure and not before.
 		$ROCKET --configure
 	else
-		echo "rocket has not been assigned." > /dev/stdout
+
+		(($BUGGY)) && echo "DEBUG: init_rocket() rocket has not been assigned." > /dev/stdout
 	fi
+
+	return $fret
 }
 
 
 init_ui () {
 
 	USERINTERFACE=bash_tui
+	fret=0
 
 	if [ -f $USERINTERFACE ]; then
+		fret=1
 		. $USERINTERFACE
+		
 	fi
+	return $fret
 
 }
 
@@ -534,29 +548,12 @@ function keyNav () {
 
 
 
-### The sandbox interface should remain  compact and complete.
-### We don't want to alter this interface should it be found
-### useful down the road for some other purpose.
-
-function sandbox () {
-
-
-	. /home/condor/devel/bash/read/box.sh 
-
-
-	keyboard_navigation
-}
-
-function sandbox_help () {
-
-	keyboard_navigation --help
-
-}
 
 init_rocket
-init_ui
 
-STACK=( `$ROCKET --populate` )
+(($?)) && init_ui
+
+(($?)) && STACK=( `$ROCKET --populate` )
 
 SCURSOR=0 
 MPATH=${STACK[0]}

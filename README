@@ -1,0 +1,17 @@
+Tuesday 7/30/14 12:31 am UTC
+
+I'll attempt to make this bit of scripting acceptably neat to 
+be presented in the honored github users that might fall upon 
+it.  
+
+
+
+To Do:
+
+1.	Get rid of the bash_alaises script!
+
+	The specials should all be in bash_tui.
+
+2.	Get a licence in the repository.
+
+ 
