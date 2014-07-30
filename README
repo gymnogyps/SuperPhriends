@@ -1,8 +1,23 @@
 Tuesday 7/30/14 12:31 am UTC
 
-I'll attempt to make this bit of scripting acceptably neat to 
-be presented in the honored github users that might fall upon 
-it.  
+Instructions for use of this development version of SuperPhriends Navigator.
+===============================================================================
+
+IMPORTANT: a database file for sqlite3 must be created first and foremost.
+
+1. ./launch.sh will create a new bash shell and seek out the local
+configuration for this shell.  SuperPhriends Navigator will also 
+be configured at this time.  
+
+2. (Required only once) ./sqlite_rocket 
+Then follow the instructions for creating a new database.
+
+===============================================================================
+
+Goals: 	1. Make this development version presentable to other honored Github
+users who might fall upon my work. 
+	2. Finish the database development effort.
+	3. Finish the user interface development effort.
 
 
 
