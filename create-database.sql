@@ -1,5 +1,7 @@
 --- $Id: create-database.sql,v 1.1 2014/07/01 14:15:11 condor Exp condor $
 ---
+---Copyright 2014 Gymnogyps Californianus
+---
 --- File: create_db.sql
 --- Purpose: SQL statement to create the datebase for the 
 --- mysql_rocket.sh utility.

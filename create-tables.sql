@@ -1,5 +1,7 @@
 --- $Id: create-tables.sql,v 1.1 2014/07/01 14:15:13 condor Exp condor $
 ---
+---Copyright 2014 Gymnogyps Californianus
+---
 --- File     : create_tables.sql
 --- Purpose  : SQL statement to create the datebase tables
 ---          : for the mysql_rocket.sh utility.

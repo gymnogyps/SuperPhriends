@@ -1,5 +1,7 @@
 # $Id: bash_tui,v 1.1 2014/06/17 23:29:34 condor Exp condor $
-
+#
+# Copyright 2014 Gymnogyps Californianus
+#
 # File    : bash_aliases
 # Purpose : Shell configuration file. 
 # Date    : 5/12/14   

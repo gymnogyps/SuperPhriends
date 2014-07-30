@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+# Copyright 2014 Gymnogyps Californianus
+#
 # Feature:  Navigator 
 #  Purpose: Provides fast directory structure transversal with persistance provided by Sqlite3.
 #           This is a drop in replacement for bash directory stack.  

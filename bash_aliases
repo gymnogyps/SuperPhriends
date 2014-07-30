@@ -1,5 +1,7 @@
 # $Id$
-
+#
+# Copyright 2014 Gymnogyps Californianus
+#
 # File    : bash_aliases
 # Purpose : Shell configuration file. 
 # Date    : 5/12/14   

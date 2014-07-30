@@ -1,5 +1,7 @@
 # .bashrc
 
+# Copyright 2014 Gymnogyps Californianus
+
 # Source global definitions
 if [ -f /etc/bashrc ]; then
 	. /etc/bashrc

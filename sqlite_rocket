@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Copyright 2014 Gymnogyps Californianus
+#
 # $Id: sqlite_rocket,v 1.4 2014/07/08 21:24:09 condor Exp condor $ 
 #
 # File    : skyrocket.sh 
