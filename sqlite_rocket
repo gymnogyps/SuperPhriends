@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# Copyright 2014 Gymnogyps Californianus
-#
 # $Id: sqlite_rocket,v 1.4 2014/07/08 21:24:09 condor Exp condor $ 
 #
 # File    : skyrocket.sh 
@@ -15,7 +13,7 @@
 #       528bdaf286bbf7.29235535:528bdaf4284cc7.39687120:111913:164106EST
 # 	53a625c4622263.37230699:53a6260ccd8d58.24488919:20140622:024100UTC
 
-BUGGY=0
+
 VERBOSE=0
 
 (($VERBOSE)) && {
@@ -244,7 +242,12 @@ launch_rocket_menu () {
 
 launch_rocket_cli_parser () {
 
-	# echo "DEBUG: launch_rocket_cli_parser ()"
+	local BUGGY=1
+
+	(($BUGGY)) && {
+		echo "DEBUG: launch_rocket_cli_parser ()"
+		echo "\$ABSOLUTE_DATABASE_PATH: $ABSOLUTE_DATABASE_PATH"
+	} > /dev/stderr
 
 	if [ $# -eq 1 ]; then
 
@@ -254,7 +257,7 @@ launch_rocket_cli_parser () {
 
 		elif [ $1 == "--populate" ]; then 
 
-			echo "SELECT directory FROM Directory;" | sqlite3  	$ABSOLUTE_DATABASE_PATH
+			echo "SELECT directory FROM directory;" | sqlite3  	$ABSOLUTE_DATABASE_PATH
 
 		elif [ $1 == "--delete" ]; then
 
@@ -278,8 +281,6 @@ launch_rocket_cli_parser () {
 # init_aliases
 init_db_location
 
-
-(($BUGGY)) && echo "DEBUG File: sqlite_rocket" > /dev/stderr
 if [ $# -eq 0 ]; then
 	launch_rocket_menu
 else
