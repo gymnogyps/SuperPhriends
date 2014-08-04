@@ -1,9 +1,7 @@
 #!/bin/bash
-#
-# Copyright 2014 Gymnogyps Californianus
-#
-# Feature:  Navigator 
-#  Purpose: Provides fast directory structure transversal with persistance provided by Sqlite3.
+
+# Function: superNavigator () 
+#  Purpose: The function provides fast directory structure transversal with persistance provided by Sqlite3.
 #           This is a drop in replacement for bash directory stack.  
 #     Date:  6/7/14
 #   Author:  Joseph Pesco
@@ -13,18 +11,47 @@
 # Multibyte key squence work derived from Stack Overflow "Casing arrow keys in bash"
 
 # Sunday, 20140622 9:55 UTC
-#         Goal: Use sqlite_rocket to populate the STACK array.   
+#         Goal: Use sqlite_rocket for SuperNavigator utility.   
 
-BUGGY=1
+BUGGY=0
 VERBOSE=1
+HEREDOC_DESTINATION=/dev/stdout
+USERINTERFACE=$PWD/bash_tui
 
-# Function: init_rocket () 
-# Purpose:  Find the sqlite database manager.
+# Function: verbose_out ()
+# Purpose:  Echo to standard ouptput
+# Date:     8/4/14
 # Author:   condor
-# Date:     07/29/14
+
+verbose_out () {
+
+		(($VERBOSE)) && echo "$1" > /dev/stdout
+}
+
+# Function: debug_out ()
+# Purpose:  Echo to standard ouptput
+# Date:     8/4/14
+# Author:   condor
+
+debug_out () {
+
+		(($BUGGY)) && echo "$1"  > /dev/stderr
+}
+
+error_out () {
+
+		echo "$1"  > /dev/stderr
+}
+
+# Function: init_rocket ()
+# Purpose:  Plugin database functionality, note future versions of the rocket may not be shell scripts!
+# Date:     8/4/14
+# Author:   condor
+
 init_rocket () {
 
-	fret=0
+	local BUGGY=1
+	local fret=0
 
 	ROCKETLOCATIONS[0]=$PWD/sqlite_rocket
 	# ROCKETLOCATIONS[1]=/home/condor/devel/bash/read/sqlite_rocket 
@@ -33,9 +60,9 @@ init_rocket () {
 	INDEX=0
 	for rocket in ${ROCKETLOCATIONS[@]}; do 
 
-		(($BUGGY)) && echo "DEBUG: init_rocket() \$INDEX: $INDEX: rocket location: $rocket" > /dev/stdout
-		if [ -f $rocket ]; then
+		verbose_out "DEBUG (sandbox.sh), init_rocket(): Testing for existance of sqlite_rocket at location: $rocket"
 
+		if [ -f $rocket ]; then
 			ROCKET=$rocket
 			break
 		fi
@@ -43,50 +70,60 @@ init_rocket () {
 	done
 
 	if [ -f $ROCKET ]; then
-
-		(($BUGGY)) && echo "DEBUG: init_rocket() rocket has been assigned to: $ROCKET" > /dev/stdout
-		fret=1
-		# Handshake the sqlite database manager, pole the results and set the state of the 
-		# function return value after configure and not before.
+	
+		verbose_out "rocket has been assigned to: $ROCKET"
 		$ROCKET --configure
 	else
-
-		(($BUGGY)) && echo "DEBUG: init_rocket() rocket has not been assigned." > /dev/stdout
+	
+		verbose_out "rocket has not been assigned."
+		fret=1
 	fi
-
+	
+	debug_out "DEBUG (sandbox.sh), init_rocket(): returning from init_rocket() \$fret: $fret"
 	return $fret
 }
 
+# Function: init_ui ()
+# Purpose:  Plugin the console text user interface
+# Date:     8/4/14
+# Author:   condor
 
 init_ui () {
 
-	USERINTERFACE=bash_tui
-	fret=0
+  local fret=1
+  local USERINTERFACE="${1}"
 
-	if [ -f $USERINTERFACE ]; then
-		fret=1
-		. $USERINTERFACE
-		
-	fi
-	return $fret
+  if [ -f $USERINTERFACE ]; then
+    . $USERINTERFACE
+    fret=0
+  else 
+    error_out "ERROR (sandbox.sh), init_ui(): \"$USERINTERFACE\" could not be found!."
+    error_out "ERROR (sandbox.sh), init_ui(): Calling script should terminate upon return from this function!"
+  fi
+  
+  return $fret
 
 }
 
 # STACK=( '/home/condor' '/home/condor/devel/bash/read' '/usr/local/bin' )
-
 # Obsolete, replace the following line of script with a call to stack_retrieve ()
+
+# Function: isnum ()
+# Purpose:  This function insures that the characters in the string passed as an argument are all digits.
+# Date:     8/4/14
+# Author:   condor
+
 function isnum () {
 
-
-        echo "DEBUG: isnum" > /dev/stderr
+        debug_out "function: isnum{}" 
         len=${#1}
 
         for (( y=0; $y < $len; y++ )) ; do 
 
                 char=${1:${y}:1}
 
+                # Uncomment for a fearful quantity of verbosity!
                 # echo -n $char 
-
 
                 if ! [[ $char =~ [[:digit:]] ]]; then 
                         return 1
@@ -98,12 +135,22 @@ function isnum () {
 
 
 # New Primatives based on disatisfaction with with functions:
+
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
+
 function navigation_help () {
 
 	:
 
 }
 
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 function navigation_kboard () {
 
@@ -131,12 +178,7 @@ function navigation_kboard () {
 	# echo -e "\\033#3"
 	echo -n ${STACK[${CURSOR}]}
 
-
-
 	# #######################################
-
-
-
 
 	while [[ $COMPLETE -eq 0 ]]; do # 1 char (not delimiter), silent
 
@@ -152,11 +194,9 @@ function navigation_kboard () {
 		
 		echo -en "\\033[2K\\033[1000D"
 	
-
 		case "$complete_key_sequence" in 
 			$'' )
 				(($VERBOSE)) && echo "Enter"
-
 
 				if [ -d  ${STACK[${CURSOR}]} ]; then
 
@@ -167,9 +207,7 @@ function navigation_kboard () {
 				else
 					echo -n "can't find selected directory!"
 				fi
-
 			;;
-
 #		$'\e[D')
 #				(($VERBOSE)) && echo "left arrow"
 #
@@ -179,8 +217,6 @@ function navigation_kboard () {
 #					let CURSOR++
 #				fi
 #			;;
-
-
 #			$'\e[C')
 #				(($VERBOSE)) && echo "right arrow"
 #
@@ -190,8 +226,6 @@ function navigation_kboard () {
 #					let CURSOR--
 #				fi
 #			;;
-
-
 			$'\e[A')
 				# (($VERBOSE)) && echo "up arrow"
 
@@ -209,12 +243,15 @@ function navigation_kboard () {
 
 		esac
 
-
+		
 	done
-
 }
 
 
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 function iterate_navigation_list () {
 
@@ -225,6 +262,10 @@ function iterate_navigation_list () {
 	done
 }
 
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 function navigation_back () {
 
@@ -237,6 +278,10 @@ function navigation_back () {
 		PREVIOUSLOCATION=$CURRENTLOCATION
 		CURRENTLOCATION=$PWD
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 function navigation_tui () {
 
@@ -246,6 +291,10 @@ function navigation_tui () {
 
 
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 function navigation_goto () {
   
@@ -259,27 +308,34 @@ function navigation_goto () {
 
 # End User functions
 
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
+
+# Note: A bunch of if/fi due to fluid nature of development at this stage
+
 function nav () {
 
-	COMPLETE=0
+	OP_IS_COMPLETED=0
 
 	if [ $# -eq 0 ] || [ "$1" == 'view' ] || [ "$1" == 'v' ] ; then 
 
 		iterate_navigation_list
-		COMPLETE=1
+		OP_IS_COMPLETED=1
 	fi 
 
 
 	if [ "$1" == 'help' ] || [ "$1" == 'h' ] ; then 
 
 		navigation_help
-		COMPLETE=1
+		OP_IS_COMPLETED=1
 	fi 
 
 	if [ "$1" == 'back' ] || [ "$1" == 'b' ] ; then 
 
 		navigation_back
-		COMPLETE=1
+		OP_IS_COMPLETED=1
 	fi 
 
 	if [ "$1" == 'tui' ] || [ "$1" == 't' ] ; then 
@@ -289,7 +345,7 @@ function nav () {
         fi 
 
 
-	if [ $# -eq 1 ] && [ $COMPLETE -eq 0 ]; then
+	if [ $# -eq 1 ] && [ $OP_IS_COMPLETED -eq 0 ]; then
 
 		isnum $1 
 		val=$?
@@ -307,6 +363,10 @@ function nav () {
 
 
 
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 stack_cursor () {
 	echo $SCURSOR
@@ -314,6 +374,11 @@ stack_cursor () {
 
 
 ### primative stack interface
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
+
 stack() {
 	index=0
 	for element in "${STACK[@]}" ; do
@@ -321,6 +386,10 @@ stack() {
 		let index++
 	done
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 stack_push () {
 
@@ -333,6 +402,10 @@ stack_push () {
 	# STACK[0]="hello world"
 	# IFS=$' \n\t'
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 stack_pop () {
 	STACK[0]=''
@@ -341,12 +414,21 @@ stack_pop () {
 
 	:
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
+
 stack_top () {
 
 	echo ${STACK[0]}
 }
 
 ### advanced stack interface
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 stack_goto () {
 
@@ -356,12 +438,20 @@ stack_goto () {
 		cd ${STACK[$1]}
 	fi
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 stack_retrieve () {
 
 	:
 
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 stack_stow () {
 
@@ -372,18 +462,31 @@ stack_stow () {
 	done
 
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
+
 mypath () {
 
-	if [ $# -eq 0 ]; then
-		echo $MPATH
-	elif [ $# -eq 1 ]; then
-		MPATH=$1
-	fi
+  if [ $# -eq 0 ]; then
+    echo $MPATH
+  elif [ $# -eq 1 ]; then
+    MPATH=$1
+  fi
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 mypath_accend () {
 	:
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 mypath_decend () {
 	:
@@ -391,6 +494,10 @@ mypath_decend () {
 
 
 
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 function keyboard_navigation () {
 
@@ -543,6 +650,10 @@ while [[ $COMPLETE -eq 0 ]]; do # 1 char (not delimiter), silent
 done
 
 }
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
 
 function keyNav () {
 	keyboard_navigation
@@ -550,21 +661,41 @@ function keyNav () {
 
 
 
+### The sandbox interface should remain  compact and complete.
+### We don't want to alter this interface should it be found
+### useful down the road for some other purpose.
 
-init_rocket
-
-(($?)) && init_ui
-
-(($?)) && STACK=( `$ROCKET --populate` )
-
-SCURSOR=0 
-MPATH=${STACK[0]}
-
-CURRENTLOCATION=$PWD
-PREVIOUSLOCATION=$PWD
+function sandbox () {
 
 
-cat > /dev/null <<EOD
+	. /home/condor/devel/bash/read/box.sh 
+
+
+	keyboard_navigation
+}
+# Function: 
+# Purpose:  
+# Date:     8/4/14
+# Author:   condor
+
+function sandbox_help () {
+
+	keyboard_navigation --help
+
+}
+
+
+
+
+function billboard () {
+
+fret=1
+
+if [ $1 == off ]; then 
+  return $fret
+fi
+
+cat > $HEREDOC_DESTINATION <<EOD
 
 	###########################################################################################
 	###########################################################################################
@@ -601,8 +732,40 @@ cat > /dev/null <<EOD
 	###########################################################################################
 
 EOD
+return $fret
+}
 
 
+#
+#                            *** Userland ***
+#
+# #############################################################################
+init_rocket
+if [ $? -eq 0 ]; then
+
+  # init_rocket() was successful, error would have ben caught within function
+  # body!
+  
+  if [ ! -f "${USERINTERFACE}" ]; then
+  
+    error_out "ERROR (sandbox.sh), Line: $LINENO, The value of \$USERINTERFACE: $USERINTERFACE is not valid!"
+  else
+  
+    init_ui "${USERINTERFACE}"
+    if [ $? -eq 0 ]; then
+  
+      STACK=( `$ROCKET --populate` )
+      SCURSOR=0 
+      MPATH=${STACK[0]}
+
+      CURRENTLOCATION=$PWD
+      PREVIOUSLOCATION=$PWD
+
+      billboard off
+    
+    fi
+  fi
+fi
 ### ###########################################################################
 
 function innards () {

@@ -17,6 +17,10 @@ Then follow the instructions for creating a new database.
 
 ===============================================================================
 
+Original Describtion from Github: Super Phriends are utilities for bash that 
+allow the shell to retain certain state information. 
+
+
 Goals: 	1. Make this development version presentable to other honored Github
 users who might fall upon my work. 
 	2. Finish the database development effort.
