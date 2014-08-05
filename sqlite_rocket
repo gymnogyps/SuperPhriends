@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Id: sqlite_rocket,v 1.4 2014/07/08 21:24:09 condor Exp condor $ 
+# $Id: sqlite_rocket,v 1.2 2014/08/05 02:31:43 condor Exp condor $ 
 #
 # File    : skyrocket.sh 
 # Purpose : Slightly less primative than using your toes cli sqlite3 tool. 
@@ -13,9 +13,46 @@
 #       528bdaf286bbf7.29235535:528bdaf4284cc7.39687120:111913:164106EST
 # 	53a625c4622263.37230699:53a6260ccd8d58.24488919:20140622:024100UTC
 
-
+BUGGY=0
 VERBOSE=0
 
+# Note: 
+#        8/4/14 GUFI is on the back burner until the code is on Github.
+
+# To Do:
+#        8/4/14 1. Change ABSOLUTE_DATABASE_PATH to something more managable such as DB_LOCATION.
+#               2. Complete set of ANSI Escapes.
+#		3. The Keyboard Navigation is from the net, I saved a  pdf of the posting.
+#                  When I find the pdf I give credit where do.  
+#            
+
+# Discussion:
+#
+#      This works and is only terrible and only blaringly slobby.  The two interfaces came 
+# about organically in several hack sessions and should be designed before proceeding much 
+# further:
+#          nav api     - user level function call is still incomplete 
+#          stack_* api - is incorrect named.  This should be a circular queue. 
+#
+# 
+#                        1. Something like is needed: 
+#
+#				stack_new_location () {
+#					stack_push $PWD
+#					stack_stow $PWD
+#				}
+#                            Though named cqueue_new_loc () or something similiar.
+#                        2. Sorting the queue needs to be acomplished.  
+#                        3. Speeding navigation needs to thought out.  
+#
+#           The Edge of the Universe:
+#                        1. Entity Relationship analysis of a database that not 
+#                           only saves locations put tracks directory changes.  
+#                           Activity logging and integration with ctags (maybe).
+#                           This database should also be GUFI aware.
+#                        2. an Sqlite3 interface to help manage inline Sql.
+#                           The idea might be based on "a mask" of the table definition. 
+							 
 (($VERBOSE)) && {
 	echo -e "\\033[34mFile:\\033[0m     $0"
 	echo -e "\\033[34mLocation:\\033[0m $PWD"
@@ -24,7 +61,7 @@ VERBOSE=0
 
 
 
-init_aliases () {
+init_aliases_xxx () {
 
 # bash_aliases is the focus this sourcing because, for now, cfs_select () 
 # is located in this file.  cfs_select () should reside in bash_tui.
@@ -49,7 +86,7 @@ init_aliases () {
 
 
 
-init_db_location () {
+init_db_location_xxx () {
 
 
 
@@ -173,7 +210,13 @@ delete_database () {
 launch_rocket_menu () {
 
 
-	db_location
+	# db_location
+
+	CREATE=0
+	BACKUP=1
+	DELETE=2
+	CONSOLE=3
+	EDIT=4
 
 	MENU=( "Create database" "Backup database" "Delete database" "Sqlite3 Console"  "Edit Table Definition File" )
 
@@ -181,14 +224,10 @@ launch_rocket_menu () {
 
 		cfs_select "${MENU[@]}"
 
-		# echo $CFS_SELECTION
-		# echo "${MENU[0]}" 		
-		# echo "${MENU[1]}" 		
-		# echo "${MENU[2]}" 
 		case  "$CFS_SELECTION" in 
 
-			"${MENU[0]}" )
-				echo "${MENU[0]}"
+			"${MENU[${CREATE}]}" )
+				echo "DEBUG: ${MENU[0]}"
 				CFS_SELECTION="Exit"
 			
 				cat create-database.sql | sqlite3 $ABSOLUTE_DATABASE_PATH
@@ -197,22 +236,22 @@ launch_rocket_menu () {
 
 			;; 
 
-			"${MENU[1]}" )
+			"${MENU[${BACKUP}]}" )
 
 				backup_database 
-				echo "${MENU[1]}"
+				echo "DEBUG: ${MENU[1]}"
 				CFS_SELECTION="Exit"
 			;;
 
 
-			"${MENU[2]}" )
+			"${MENU[${DELETE}]}" )
 
-				delete_database 
-				echo "${MENU[2]}"
+				# delete_database 
+				echo "DEBUG: ${MENU[2]}"
 				CFS_SELECTION="Exit"
 			;;
 
-			"${MENU[3]}" )
+			"${MENU[${CONSOLE}]}" )
 
 				if [ -f $ABSOLUTE_DATABASE_PATH ]; then
 					sqlite3 $ABSOLUTE_DATABASE_PATH
@@ -225,7 +264,7 @@ launch_rocket_menu () {
 				CFS_SELECTION="Exit"
 			;;
 
-			"${MENU[4]}" )
+			"${MENU[${EDIT}]}" )
 
 				if [ -f create-tables.sql ]; then
 					vim create-tables.sql 
@@ -236,50 +275,85 @@ launch_rocket_menu () {
 			;;
 		esac
 	done
-} # launch_rocket_menu
 
+} # launch_rocket_menu () 
 
+# Function: launch_rocket_cli_parser ()
+# Purpose:  Read and respond to the command line interface to the sqlite rocket engine.
+# Author:   condor
+# Date:     8/4/14
+
+# Note: That the use of the sqlite3 utility is simply an exercise and may change in future versions.
+# Performance and security are both considerations is when and how this change may take place.
 
 launch_rocket_cli_parser () {
 
 	local BUGGY=1
+	local VERBOSE=0
+	local ABSOLUTE_DATABASE_PATH=/home/condor/bin/SuperNavigator.db
+
+	# Beware of fragile redirections here!  Experiments with alternatives are being done in sandbox.sh.  
 
 	(($BUGGY)) && {
-		echo "DEBUG: launch_rocket_cli_parser ()"
-		echo "\$ABSOLUTE_DATABASE_PATH: $ABSOLUTE_DATABASE_PATH"
+		# echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  Entering function" 
+		echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  Entering function"
+		echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  \$ABSOLUTE_DATABASE_PATH: $ABSOLUTE_DATABASE_PATH"
 	} > /dev/stderr
+
 
 	if [ $# -eq 1 ]; then
 
-		if [ $1 == "--help" ] || [ $1 == "-h" ]; then
+		(($BUGGY)) && echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  Argument: $1" > /dev/stderr
+
+		if [ $1 == "--configure" ]; then
+
+			(($BUGGY)) && echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  configure" > /dev/stderr
+
+		elif [ $1 == "--help" ] || [ $1 == "-h" ]; then
 			long_help
 
+			(($BUGGY)) && echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  Help" > /dev/stderr
 
 		elif [ $1 == "--populate" ]; then 
 
-			echo "SELECT directory FROM directory;" | sqlite3  	$ABSOLUTE_DATABASE_PATH
+			(($BUGG)) && echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  populate" > /dev/stderr
+			echo "SELECT directory FROM Directory;" | sqlite3  	$ABSOLUTE_DATABASE_PATH 2> sqlite.out
 
+			# echo "Error Value: $?" > /dev/stderr
+	
+			(($?)) && {
+				echo -n "sqlite3 reported error:"
+				cat sqlite.out
+			}  > /dev/stderr
+
+			rm sqlite.out
 		elif [ $1 == "--delete" ]; then
 
-				echo "DELETE FROM directory;" | sqlite3 	$ABSOLUTE_DATABASE_PATH
+				(($BUGGY)) && echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  delete" > /dev/stderr
+				echo "DELETE FROM Directory;" | sqlite3 	$ABSOLUTE_DATABASE_PATH
 
 		fi
 
 		
 	elif [ $# -eq 2 ]; then
 
+		(($BUGGY)) && echo "BUGGY (sqlite_rocket), launch_rocket_cli_parser ():  Arguments: $@" > /dev/stderr
+
 		if [ $1 == "--push" ]; then
 
-			echo "INSERT INTO directory VALUES (\"$2\", \"\", NULL );" | sqlite3 	$ABSOLUTE_DATABASE_PATH
+			sqlite.out=`echo "INSERT INTO Directory VALUES (\"$2\", \"\", NULL );" | sqlite3 	$ABSOLUTE_DATABASE_PATH `
+
+			(($?)) && echo "sqlite3 reported error: \"$sqlite.out\""
+
 
 		fi
 	fi
 
-
-}
+	(($BUGGY)) && echo "Returning from launch_rocket_cli_parser()" > /dev/stderr
+} # launch_rocket_cli_parser () 
 
 # init_aliases
-init_db_location
+# init_db_location
 
 if [ $# -eq 0 ]; then
 	launch_rocket_menu
@@ -288,6 +362,12 @@ else
 fi
 
 # $Log: sqlite_rocket,v $
+# Revision 1.2  2014/08/05 02:31:43  condor
+# Added a discussion and some comments for the future direction of this file.
+#
+# Revision 1.1  2014/08/05 01:33:34  condor
+# Initial revision
+#
 # Revision 1.4  2014/07/08 21:24:09  condor
 # I've added a help function.
 #

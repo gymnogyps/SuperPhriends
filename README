@@ -1,7 +1,16 @@
 
 Copyright 2014 Gymnogyps Californianus
 
-Tuesday 7/30/14 12:31 am UTC
+Project: SuperPhriends (Possibly SuperFriends)
+
+Purpose: State aware Bash utilities.  The state data is stored in an 
+Sqlite3 database.
+
+===============================================================================
+SuperPhriends Navigator
+===============================================================================
+===============================================================================
+
 
 Instructions for use of this development version of SuperPhriends Navigator.
 ===============================================================================
@@ -35,5 +44,13 @@ To Do:
 	The specials should all be in bash_tui.
 
 2.	Get a licence in the repository.
+===============================================================================
+SuperPhriends Find
 
- 
+Inital work began on 8/4/14. 
+
+===============================================================================
+Monday   8/4/15  3:36 am UTC 
+Tuesday 7/30/14 12:31 am UTC
+
+

@@ -13,11 +13,21 @@
 # Sunday, 20140622 9:55 UTC
 #         Goal: Use sqlite_rocket for SuperNavigator utility.   
 
+
+echo "DEBUG (sandbox.sh) Entering Script"
+
 BUGGY=0
 VERBOSE=1
 HEREDOC_DESTINATION=/dev/stdout
 USERINTERFACE=$PWD/bash_tui
+DBLOCATION=/home/condor/bin/SuperNavigator.db
+ROCKET=$PWD/sqlite_rocket
+A_TESTVAR="test"
 
+
+ABSOLUTE_DATABASE_PATH=/home/condor/bin/SuperNavigator.db
+export ABSOLUTE_DASTABASE_PATH	
+# ABSOLUTE_DATABASE_PATH=""
 # Function: verbose_out ()
 # Purpose:  Echo to standard ouptput
 # Date:     8/4/14
@@ -51,35 +61,33 @@ error_out () {
 init_rocket () {
 
 	local BUGGY=1
+	local VERBOSE=1
+	local ABSOLUTE_DATABASE_PATH="$1"
 	local fret=0
+	
+	echo "DEBUG (sandbox.sh), init_rocket() \$ABSOLUTE_DATABASE_PATH  $DBLOCATION"
 
-	ROCKETLOCATIONS[0]=$PWD/sqlite_rocket
-	# ROCKETLOCATIONS[1]=/home/condor/devel/bash/read/sqlite_rocket 
-	# ROCKETLOCATIONS[2]=/run/media/condor/567fba76-1c0a-49d5-9373-710fc2a5b85c/home/condor/devel/bash/read/sqlite_rocket
+	if [ -f "$DBLOCATION" ]; then
 
-	INDEX=0
-	for rocket in ${ROCKETLOCATIONS[@]}; do 
+		echo "DEBUG (sandbox.sh), init_rocket(): Database Location: $ABSOLUTE_DATABASE_PATH"
 
-		verbose_out "DEBUG (sandbox.sh), init_rocket(): Testing for existance of sqlite_rocket at location: $rocket"
-
-		if [ -f $rocket ]; then
-			ROCKET=$rocket
-			break
+		if [ -f $ROCKET ]; then
+	
+			verbose_out "VERBOSE (sandbox.sh), init_rocket(): rocket has been assigned to: $ROCKET"
+			$ROCKET --configure
+		else
+	
+			verbose_out "rocket has not been assigned."
+			fret=1
 		fi
-		let INDEX++
-	done
-
-	if [ -f $ROCKET ]; then
-	
-		verbose_out "rocket has been assigned to: $ROCKET"
-		$ROCKET --configure
 	else
-	
-		verbose_out "rocket has not been assigned."
+
+		verbose_out "VERBOSE (sandbox.sh), init_rocket(): Database Not In Assigned location Location: $DBLOCATION"
+		verbose_out "VERBOSE (sandbox.sh), init_rocket(): Attempt sqlite_rocket without arguments and creating a new database."
+
 		fret=1
 	fi
-	
-	debug_out "DEBUG (sandbox.sh), init_rocket(): returning from init_rocket() \$fret: $fret"
+	debug_out "DEBUG (sandbox.sh), init_rocket(): returning with value: \$fret: $fret"
 	return $fret
 }
 
@@ -455,12 +463,18 @@ stack_retrieve () {
 
 stack_stow () {
 
+	echo "DEBUG (sandbox.sh), stack_stow (): entering"
+
 	$ROCKET --delete
 
+	echo "DEBUG (sandbox.sh)"
 	for path in ${STACK[@]}; do 
+
+		echo "DEBUG (sandbox.sh) \$path: $path"
 		$ROCKET --push  $path
 	done
 
+	echo "DEBUG (sandbox.sh), stack_stow (): leaving"
 }
 # Function: 
 # Purpose:  
@@ -740,20 +754,29 @@ return $fret
 #                            *** Userland ***
 #
 # #############################################################################
-init_rocket
+
+
+verbose_out "VERBOSE Entering Userland"
+init_rocket "$ABSOLUTE_DATABASE_PATH"
+
+verbose_out "VERBOSE 2"
 if [ $? -eq 0 ]; then
 
+verbose_out "VERBOSE 3"
   # init_rocket() was successful, error would have ben caught within function
   # body!
   
   if [ ! -f "${USERINTERFACE}" ]; then
   
+verbose_out "VERBOSE 4"
     error_out "ERROR (sandbox.sh), Line: $LINENO, The value of \$USERINTERFACE: $USERINTERFACE is not valid!"
   else
   
+verbose_out "VERBOSE 5"
     init_ui "${USERINTERFACE}"
     if [ $? -eq 0 ]; then
   
+verbose_out "VERBOSE 6"
       STACK=( `$ROCKET --populate` )
       SCURSOR=0 
       MPATH=${STACK[0]}
@@ -766,6 +789,9 @@ if [ $? -eq 0 ]; then
     fi
   fi
 fi
+
+
+verbose_out "VERBOSE 7"
 ### ###########################################################################
 
 function innards () {
